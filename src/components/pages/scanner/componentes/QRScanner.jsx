@@ -7,11 +7,13 @@ export const QRScanner = ({ onScanSuccess, onClose }) => {
   const [isUsingCamera, setIsUsingCamera] = useState(true);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-	const [data, setData] = useState(null);
+  const [data, setData] = useState(null);
+  const [isScanning, setIsScanning] = useState(false);
 
   const videoRef = useRef(null);
   const fileInputRef = useRef(null);
   const canvasRef = useRef(null);
+  const animationFrameRef = useRef(null);
 
   useEffect(() => {
     let stream;
@@ -20,7 +22,13 @@ export const QRScanner = ({ onScanSuccess, onClose }) => {
         .getUserMedia({ video: { facingMode: "environment" } })
         .then((s) => {
           stream = s;
-          if (videoRef.current) videoRef.current.srcObject = stream;
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+            // Iniciar escaneo automático cuando el video esté listo
+            videoRef.current.onloadedmetadata = () => {
+              setIsScanning(true);
+            };
+          }
         })
         .catch((err) => {
           console.error("Error al acceder a la cámara:", err);
@@ -33,72 +41,124 @@ export const QRScanner = ({ onScanSuccess, onClose }) => {
       if (stream) {
         stream.getTracks().forEach((track) => track.stop());
       }
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
     };
   }, [isUsingCamera]);
 
-	const readQRFromCanvas = (canvas) => {
-		const ctx = canvas.getContext("2d");
-		const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  // Función de escaneo continuo
+  const scanQRContinuously = () => {
+    if (!videoRef.current || !canvasRef.current || !isScanning) {
+      return;
+    }
 
-		const code = jsQR(imageData.data, imageData.width, imageData.height);
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
 
-		if (code) {
-			console.log("QR leído:", code.data);
-			setData(code.data);
-			return code.data;
-		} else {
-			console.log("No se detectó ningún QR");
-			return null;
-		}
-	};
+    // Solo escanear si el video tiene dimensiones válidas
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-	const captureImage = () => {
-		if (!videoRef.current) return;
-		const video = videoRef.current;
-		const canvas = canvasRef.current;
-		const ctx = canvas.getContext("2d");
+      const result = readQRFromCanvas(canvas);
+      
+      if (result) {
+        console.log("QR detectado automáticamente:", result);
+        setIsScanning(false); // Detener escaneo
+        onScanSuccess(result);
+        return; // Salir del bucle
+      }
+    }
 
-		canvas.width = video.videoWidth;
-		canvas.height = video.videoHeight;
-		ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    // Continuar escaneando en el siguiente frame
+    animationFrameRef.current = requestAnimationFrame(scanQRContinuously);
+  };
 
-		const result = readQRFromCanvas(canvas);
-		console.log("QR capturado (video):", result); // ✅ log del QR
+  // Iniciar/detener escaneo automático
+  useEffect(() => {
+    if (isScanning && isUsingCamera) {
+      scanQRContinuously();
+    } else if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
 
-		if (result) {
-			onScanSuccess(result);
-		} else {
-			alert("No se detectó ningún QR. Intenta otra vez.");
-		}
-	};
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [isScanning, isUsingCamera]);
 
-	const handleFileUpload = (e) => {
-		const file = e.target.files[0];
-		if (!file) return;
+  const readQRFromCanvas = (canvas) => {
+    const ctx = canvas.getContext("2d");
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-		const reader = new FileReader();
-		reader.onload = (ev) => {
-			const img = new Image();
-			img.onload = () => {
-				const canvas = canvasRef.current;
-				const ctx = canvas.getContext("2d");
-				canvas.width = img.width;
-				canvas.height = img.height;
-				ctx.drawImage(img, 0, 0);
+    const code = jsQR(imageData.data, imageData.width, imageData.height);
 
-				const result = readQRFromCanvas(canvas);
-				console.log("QR capturado (imagen):", result); // ✅ log del QR
+    if (code) {
+      console.log("QR leído:", code.data);
+      setData(code.data);
+      return code.data;
+    }
+    return null;
+  };
 
-				if (result) {
-					onScanSuccess(result); // llamalo solo si hay QR
-				} else {
-					alert("No se detectó ningún QR en la imagen");
-				}
-			};
-			img.src = ev.target.result;
-		};
-		reader.readAsDataURL(file);
-	};
+  // Función manual para captura (botón de respaldo)
+  const captureImage = () => {
+    if (!videoRef.current) return;
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const result = readQRFromCanvas(canvas);
+    console.log("QR capturado manualmente:", result);
+
+    if (result) {
+      onScanSuccess(result);
+    } else {
+      alert("No se detectó ningún QR. Intenta otra vez.");
+    }
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext("2d");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+
+        const result = readQRFromCanvas(canvas);
+        console.log("QR capturado (imagen):", result);
+
+        if (result) {
+          onScanSuccess(result);
+        } else {
+          alert("No se detectó ningún QR en la imagen");
+        }
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Función para pausar/reanudar escaneo
+  const toggleScanning = () => {
+    setIsScanning(!isScanning);
+  };
 
   return (
     <div className="card w-full">
@@ -145,11 +205,32 @@ export const QRScanner = ({ onScanSuccess, onClose }) => {
                 <div className="corner top-right"></div>
                 <div className="corner bottom-left"></div>
                 <div className="corner bottom-right"></div>
+                {/* Indicador de escaneo */}
+                {isScanning && (
+                  <div className="scanning-indicator">
+                    🔍 Escaneando automáticamente...
+                  </div>
+                )}
               </div>
             </div>
-            <button className="capture-button" onClick={captureImage} disabled={isLoading}>
-              {isLoading ? "Procesando..." : "Capturar QR"}
-            </button>
+            
+            {/* Controles de escaneo */}
+            <div className="camera-controls">
+              <button 
+                className={`scan-toggle-button ${isScanning ? 'scanning' : 'paused'}`}
+                onClick={toggleScanning}
+              >
+                {isScanning ? "⏸️ Pausar Escaneo" : "▶️ Iniciar Escaneo"}
+              </button>
+              
+              <button 
+                className="capture-button secondary" 
+                onClick={captureImage} 
+                disabled={isLoading}
+              >
+                📸 Captura Manual
+              </button>
+            </div>
           </div>
         ) : (
           <div className="upload-section">

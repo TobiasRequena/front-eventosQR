@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { User, Mail, Phone, Calendar, Briefcase, CheckCircle, RotateCcw, Loader2 } from "lucide-react";
+import './participant.css';
 
 export const ParticipantInfo = ({ data, onNewScan }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -55,7 +56,7 @@ export const ParticipantInfo = ({ data, onNewScan }) => {
       <div className="card">
         <div className="card-header">
           <User size={20} className="text-primary mr-2" />
-          Información del Participante
+          <h3 className="card-title">Información del Participante</h3>
         </div>
         <div className="card-content">
           <div className="personal-info">

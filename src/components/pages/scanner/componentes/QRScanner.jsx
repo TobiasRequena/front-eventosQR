@@ -213,24 +213,6 @@ export const QRScanner = ({ onScanSuccess, onClose }) => {
                 )}
               </div>
             </div>
-            
-            {/* Controles de escaneo */}
-            <div className="camera-controls">
-              <button 
-                className={`scan-toggle-button ${isScanning ? 'scanning' : 'paused'}`}
-                onClick={toggleScanning}
-              >
-                {isScanning ? "⏸️ Pausar Escaneo" : "▶️ Iniciar Escaneo"}
-              </button>
-              
-              <button 
-                className="capture-button secondary" 
-                onClick={captureImage} 
-                disabled={isLoading}
-              >
-                📸 Captura Manual
-              </button>
-            </div>
           </div>
         ) : (
           <div className="upload-section">

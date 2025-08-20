@@ -4,3 +4,28 @@
 
   font-family: 'Poppins', sans-serif;
 }
+
+:root {
+  /* Colores */
+  --primary-color: #3b82f6;
+  --primary-hover-color: #2563eb;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --border-color: #e5e7eb;
+  --background-light: #f9fafb;
+  --background-white: #ffffff;
+
+  /* Espaciado */
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-xxl: 3rem;
+
+  /* Sombra */
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  /* Bordes */
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+}

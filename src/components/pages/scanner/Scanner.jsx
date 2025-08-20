@@ -32,38 +32,40 @@ const handleScanSuccess = (data) => {
         <p>Escanea el código QR para verificar la asistencia</p>
       </div>
 
-      {!isScanning && !scannedData && (
-        <div className="card">
-          <div className="card-header">
-            <h3 className="card-title">Comenzar Escaneo</h3>
+      <div className="content-container">
+        {!isScanning && !scannedData && (
+          <div className="card">
+            <div className="card-header">
+              <h3 className="card-title">Comenzar Escaneo</h3>
+            </div>
+            <div className="card-content">
+              <p className="card-text">
+                Presiona el botón para iniciar el escaneo de códigos QR
+              </p>
+              <button
+                className="card-button"
+                onClick={() => setIsScanning(true)}
+              >
+                Iniciar Escaneo
+              </button>
+            </div>
           </div>
-          <div className="card-content">
-            <p className="card-text">
-              Presiona el botón para iniciar el escaneo de códigos QR
-            </p>
-            <button
-              className="card-button"
-              onClick={() => setIsScanning(true)}
-            >
-              Iniciar Escaneo
-            </button>
-          </div>
-        </div>
-      )}
+        )}
 
-			{isScanning && (
-        <QRScanner
-          onScanSuccess={handleScanSuccess}
-          onClose={() => setIsScanning(false)}
-        />
-      )}
+        {isScanning && (
+          <QRScanner
+            onScanSuccess={handleScanSuccess}
+            onClose={() => setIsScanning(false)}
+          />
+        )}
 
-      {scannedData &&
-        <ParticipantInfo 
-          data={scannedData} 
-          onNewScan={handleNewScan} 
-        />
-      }
+        {scannedData && (
+          <ParticipantInfo 
+            data={scannedData} 
+            onNewScan={handleNewScan} 
+          />
+        )}
+      </div>
     </div>
   );
 };

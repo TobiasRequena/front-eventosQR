@@ -11,7 +11,7 @@ export const ParticipantInfo = ({ data, onNewScan }) => {
       setIsSubmitting(true);
       setError(null);
 
-      const response = await fetch("https://asistencia-aeox.onrender.com/asistencia", {
+      const response = await fetch("https://asistencia-aeox.onrender.com", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

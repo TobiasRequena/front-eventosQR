@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { User, Mail, Phone, Calendar, Briefcase, CheckCircle, RotateCcw, Loader2 } from "lucide-react";
-import './participant.css';
+import './styles/participant.css';
 
 export const ParticipantInfo = ({ data, onNewScan }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);

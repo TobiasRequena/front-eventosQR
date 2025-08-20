@@ -1,0 +1,41 @@
+.login-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  background-color: #f0f2f5;
+}
+
+.login-card {
+  width: 360px;
+  padding: 1rem;
+  border-radius: 1rem;
+}
+
+.login-subtitle {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.login-label {
+  margin-bottom: 0.25rem !important;
+}
+
+.login-links {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+}
+
+.form-space > * {
+  margin-bottom: 0.5rem;
+}
+
+.recovery-button{
+	margin-top: 1rem;
+}
+
+.auth0-button{
+	margin-top: 1rem;	
+}

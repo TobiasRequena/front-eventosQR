@@ -1,12 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { Camera, Upload, X } from "lucide-react";
-import './qrscanner.css';
+import './styles/qrscanner.css';
 import jsQR from "jsqr";
 
 export const QRScanner = ({ onScanSuccess, onClose }) => {
   const [isUsingCamera, setIsUsingCamera] = useState(true);
   const [error, setError] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [data, setData] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
 
@@ -66,18 +65,16 @@ export const QRScanner = ({ onScanSuccess, onClose }) => {
       const result = readQRFromCanvas(canvas);
       
       if (result) {
-        console.log("QR detectado automáticamente:", result);
         setIsScanning(false); // Detener escaneo
-        onScanSuccess(result);
+        setData(result);
+        onScanSuccess(data);
         return; // Salir del bucle
       }
     }
 
-    // Continuar escaneando en el siguiente frame
     animationFrameRef.current = requestAnimationFrame(scanQRContinuously);
   };
 
-  // Iniciar/detener escaneo automático
   useEffect(() => {
     if (isScanning && isUsingCamera) {
       scanQRContinuously();
@@ -99,32 +96,10 @@ export const QRScanner = ({ onScanSuccess, onClose }) => {
     const code = jsQR(imageData.data, imageData.width, imageData.height);
 
     if (code) {
-      console.log("QR leído:", code.data);
       setData(code.data);
       return code.data;
     }
     return null;
-  };
-
-  // Función manual para captura (botón de respaldo)
-  const captureImage = () => {
-    if (!videoRef.current) return;
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    const result = readQRFromCanvas(canvas);
-    console.log("QR capturado manualmente:", result);
-
-    if (result) {
-      onScanSuccess(result);
-    } else {
-      alert("No se detectó ningún QR. Intenta otra vez.");
-    }
   };
 
   const handleFileUpload = (e) => {
@@ -153,11 +128,6 @@ export const QRScanner = ({ onScanSuccess, onClose }) => {
       img.src = ev.target.result;
     };
     reader.readAsDataURL(file);
-  };
-
-  // Función para pausar/reanudar escaneo
-  const toggleScanning = () => {
-    setIsScanning(!isScanning);
   };
 
   return (
